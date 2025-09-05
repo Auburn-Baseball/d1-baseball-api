@@ -27,3 +27,34 @@ class TeamConference(BaseModel):
     TeamName: str
     Conference: str
     Year: int
+
+
+class TeamsResponse(RootModel[Dict[str, List[str]]]):
+    """Response model for teams endpoint - List of D1 teams"""
+
+    model_config = {
+        "json_schema_extra": {
+            "example": [
+                {
+                    "TrackmanAbbreviation": "AUB_TIG",
+                    "TeamName": "Auburn Tigers",
+                    "Stadium": "Plainsman Park",
+                    "Mascot": "Tigers",
+                },
+                {
+                    "TrackmanAbbreviation": "VAN_COM",
+                    "TeamName": "Vanderbilt Commodores",
+                    "Stadium": "Vanderbilt",
+                    "Mascot": "Commodores",
+                }
+            ]
+        }
+    }
+
+
+class TeamConference(BaseModel):
+    """Individual team-conference record"""
+
+    TeamName: str
+    Conference: str
+    Year: int
