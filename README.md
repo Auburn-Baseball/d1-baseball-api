@@ -1,33 +1,36 @@
-# My FastAPI App
+# D1 Baseball API (FastAPI)
 
-This is a basic FastAPI application structured for easy development and testing.
+A minimal FastAPI service built and maintained by **Auburn University Baseball**.  
+Deployed on Render and managed with Poetry.
 
-## Setup Instructions
+## Live API
 
-1. **Install Poetry:**
-   Follow the instructions at [Poetry's official website](https://python-poetry.org/docs/#installation) to install Poetry.
+- **Base URL:** https://d1-baseball-api.onrender.com/
+- **Interactive docs (Swagger UI):** https://d1-baseball-api.onrender.com/docs
 
-2. **Install dependencies:**
-   ```
-   poetry install
-   ```
+## Quickstart
 
-3. **Run the application:**
-   ```
-   poetry run uvicorn d1_baseball_api.main:app --reload
-   ```
+### Prerequisites
+- Python (3.10+ recommended)
+- [Poetry](https://python-poetry.org/)
 
-## Usage
-
-Once the application is running, you can access the API at `http://127.0.0.1:8000`. You can also access the interactive API documentation at `http://127.0.0.1:8000/docs`.
-
-## Testing
-
-To run the tests, use the following command:
+### Installation
+```bash
+poetry install
 ```
+
+### Run
+```bash
+poetry run uvicorn d1_baseball_api.main:app --reload
+```
+
+### Once Running
+- Local API: http://127.0.0.1:8000
+- Local docs: http://127.0.0.1:8000/docs
+
+### Testing
+```bash
 poetry run pytest
 ```
 
-## License
-
-This project is licensed under the MIT License.
+War Eagle! ⚾
