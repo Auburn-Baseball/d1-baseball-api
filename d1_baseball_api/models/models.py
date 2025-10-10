@@ -14,8 +14,8 @@ class Team(BaseModel):
     Mascot: str
     Conference: str
 
+
 class SeasonDates(BaseModel):
     year: int
     season_start: date
     season_end: date
-

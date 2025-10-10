@@ -12,10 +12,13 @@ HEADERS = {
     "Chrome/127.0.0.0 Safari/537.36"
 }
 
+
 def norm_text(s: str) -> str:
     return " ".join((s or "").split())
 
+
 MONTHS_RE = r"(January|February|March|April|May|June|July|August|September|October|November|December)"
+
 
 def _parse_month_day_year(text: str, fallback_year: str) -> Optional[date]:
     """Extract 'Month Day[, Year]' from text like 'Sun., June 22 (if necessary)'."""
@@ -65,11 +68,13 @@ def extract_dates() -> List[Dict[str, date]]:
         y = int(year_txt)
 
         finals_td = tds[3]
-        bits = [norm_text(d.get_text(" ", strip=True)) for d in finals_td.find_all("div")]
+        bits = [
+            norm_text(d.get_text(" ", strip=True)) for d in finals_td.find_all("div")
+        ]
         if not bits:
             bits = [norm_text(finals_td.get_text(" ", strip=True))]
 
-        candidates = [ _parse_month_day_year(b, year_txt) for b in bits ]
+        candidates = [_parse_month_day_year(b, year_txt) for b in bits]
         finals_dates = [d for d in candidates if d]
         if finals_dates:
             ws_end_by_year[y] = max(finals_dates)  # Sunday or Monday-if-necessary
@@ -83,12 +88,15 @@ def extract_dates() -> List[Dict[str, date]]:
             continue
         season_start = ws_end_by_year[prev] + timedelta(days=1)
         season_end = ws_end_by_year[y]
-        seasons.append({
-            "year": y,
-            "season_start": season_start,
-            "season_end": season_end,
-        })
+        seasons.append(
+            {
+                "year": y,
+                "season_start": season_start,
+                "season_end": season_end,
+            }
+        )
     # print (seasons)
     return seasons
+
 
 extract_dates()
