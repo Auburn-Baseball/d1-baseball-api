@@ -1,5 +1,4 @@
-from pydantic import BaseModel, RootModel
-from typing import List, Optional, Dict
+from pydantic import BaseModel
 from datetime import date
 
 
@@ -22,6 +21,8 @@ class TrackmanTeamMappingTable(BaseModel):
 
 
 class SeasonDates(BaseModel):
+    """Individual season dates record"""
+
     year: int
     season_start: date
     season_end: date

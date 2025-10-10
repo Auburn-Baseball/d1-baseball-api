@@ -3,9 +3,7 @@ from d1_baseball_api.database import get_supabase
 from d1_baseball_api.models.responses import (
     MessageResponse,
     ConferencesResponse,
-    ConferenceResponse,
     TeamsResponse,
-    TeamResponse,
     SeasonDatesResponse,
 )
 from typing import Dict, List
@@ -20,27 +18,37 @@ async def read_root():
 
 
 @router.get("/conferences", response_model=ConferencesResponse)
-async def get_conferences_by_year(year: int) -> Dict[str, List[ConferenceTeam]]:
+async def get_conferences(
+    year: int, conference: str | None = None
+) -> Dict[str, List[ConferenceTeam]]:
     """
-    Get all conferences and their teams for a specific year.
+    Get conferences and their teams for a specific year.
 
-    - **year**: The year to get conference data for (e.g., 2025)
-
-    Returns a dictionary where keys are conference names and values are lists of teams.
+    - **year**: The season year to query (e.g., 2025)
+    - **conference**: Optional conference filter (e.g., SEC). When provided the response contains only that conference.
     """
+    requested_conference = conference
     try:
         supabase = get_supabase()
-        response = (
+        query = (
             supabase.table("TeamConferences")
             .select("TeamName, Conference, TrackmanTeamMappings(TrackmanAbbreviation)")
             .eq("Year", year)
-            .execute()
         )
+        if requested_conference:
+            query = query.eq("Conference", requested_conference)
+
+        response = query.execute()
 
         if not response.data:
-            return {}
+            detail = (
+                f"No conference data found for year {year}"
+                if not requested_conference
+                else f"No conference data found for year {year} and conference {requested_conference}"
+            )
+            raise HTTPException(status_code=404, detail=detail)
 
-        conferences = {}
+        conferences: Dict[str, List[Dict[str, str]]] = {}
         for record in response.data:
             conference_name = record["Conference"]
             team_name = record["TeamName"]
@@ -55,8 +63,11 @@ async def get_conferences_by_year(year: int) -> Dict[str, List[ConferenceTeam]]:
             }
             conferences[conference_name].append(team_data)
 
-        for conference in conferences:
-            conferences[conference].sort(key=lambda x: x["TeamName"])
+        for conference_name in conferences:
+            conferences[conference_name].sort(key=lambda x: x["TeamName"])
+
+        if requested_conference and requested_conference in conferences:
+            return {requested_conference: conferences[requested_conference]}
 
         return conferences
 
@@ -64,71 +75,42 @@ async def get_conferences_by_year(year: int) -> Dict[str, List[ConferenceTeam]]:
         raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
 
 
-@router.get("/conference", response_model=ConferenceResponse)
-async def get_conference_by_year(year: int, conference: str) -> List[ConferenceTeam]:
-    """
-    Get all teams within a conference for a specific year.
-
-    - **year**: The year to get conference data for (e.g., 2025)
-    - **conference**: The conference to get conference data for (e.g., SEC)
-
-    Returns a list of conference teams.
-    """
-    try:
-        supabase = get_supabase()
-        response = (
-            supabase.table("TeamConferences")
-            .select("TeamName, Conference, TrackmanTeamMappings(TrackmanAbbreviation)")
-            .eq("Year", year)
-            .eq("Conference", conference)
-            .execute()
-        )
-
-        if not response.data:
-            return {}
-
-        conference_teams = []
-        for record in response.data:
-            conference_name = record["Conference"]
-            team_name = record["TeamName"]
-            trackman_abbrev = record["TrackmanTeamMappings"]["TrackmanAbbreviation"]
-
-            team_data = {
-                "TeamName": team_name,
-                "TrackmanAbbreviation": trackman_abbrev,
-            }
-            conference_teams.append(team_data)
-
-        conference_teams.sort(key=lambda x: x["TeamName"])
-
-        return conference_teams
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
-
-
 @router.get("/teams", response_model=TeamsResponse)
-async def get_teams_by_year(year: int) -> Dict[str, List[Team]]:
+async def get_teams(
+    year: int, conference: str | None = None, trackman: str | None = None
+) -> List[Team]:
     """
-    Get all teams for a specific year.
+    Get teams for a specific year.
 
-    - **year**: The year to get team data for (e.g., 2025)
-
-    Returns a list of teams for a specific year.
+    - **year**: The season year to query (e.g., 2025)
+    - **conference**: Optional conference filter.
+    - **trackman**: Optional TrackMan abbreviation filter. When provided the list contains at most one team.
     """
     try:
         supabase = get_supabase()
-        response = (
+        query = (
             supabase.table("TeamConferences")
             .select(
                 "TeamName, Conference, TrackmanTeamMappings!inner(TrackmanAbbreviation, Mascot)"
             )
             .eq("Year", year)
-            .execute()
         )
+        if conference:
+            query = query.eq("Conference", conference)
+        if trackman:
+            query = query.eq("TrackmanTeamMappings.TrackmanAbbreviation", trackman)
+
+        response = query.execute()
 
         if not response.data:
-            return {}
+            filters = []
+            filters.append(f"year {year}")
+            if conference:
+                filters.append(f"conference {conference}")
+            if trackman:
+                filters.append(f"TrackMan {trackman}")
+            detail = f"No team data found for {' and '.join(filters)}"
+            raise HTTPException(status_code=404, detail=detail)
 
         teams = []
         for record in response.data:
@@ -153,52 +135,8 @@ async def get_teams_by_year(year: int) -> Dict[str, List[Team]]:
         raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
 
 
-@router.get("/team", response_model=TeamResponse)
-async def get_team_by_year_and_trackman(year: int, trackman: str) -> Dict[str, Team]:
-    """
-    Get team for a specific year and trackman abbreviation.
-
-    - **year**: The year to get team data for (e.g., 2025)
-    - **trackman**: The trackman abbreviation to get team data for (e.g., AUB_TIG)
-
-    Returns a team for a specific year.
-    """
-    try:
-        supabase = get_supabase()
-        response = (
-            supabase.table("TeamConferences")
-            .select(
-                "TeamName, Conference, TrackmanTeamMappings!inner(TrackmanAbbreviation, Mascot)"
-            )
-            .eq("Year", year)
-            .eq("TrackmanTeamMappings.TrackmanAbbreviation", trackman)
-            .execute()
-        )
-
-        if not response.data:
-            return {}
-
-        record = response.data[0]
-        conference_name = record["Conference"]
-        team_name = record["TeamName"]
-        trackman_abbrev = record["TrackmanTeamMappings"]["TrackmanAbbreviation"]
-        mascot = record["TrackmanTeamMappings"]["Mascot"]
-
-        team_data = {
-            "TeamName": team_name,
-            "TrackmanAbbreviation": trackman_abbrev,
-            "Mascot": mascot,
-            "Conference": conference_name,
-        }
-
-        return team_data
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
-
-
 @router.get("/season-dates", response_model=SeasonDatesResponse)
-async def get_season_dates(year: int) -> List[SeasonDates]:
+async def get_season_dates(year: int | None = None) -> List[SeasonDates]:
     """
     Get the season window for a specific year.
 
@@ -208,14 +146,13 @@ async def get_season_dates(year: int) -> List[SeasonDates]:
     """
     try:
         supabase = get_supabase()
-        response = (
-            supabase.table("SeasonDates")
-            .select("year, season_start, season_end")
-            .eq("year", year)
-            .execute()
-        )
+        query = supabase.table("SeasonDates").select("year, season_start, season_end")
+        if year is not None:
+            query = query.eq("year", year)
 
-        if not response.data:
+        response = query.execute()
+
+        if year is not None and not response.data:
             raise HTTPException(
                 status_code=404, detail=f"Season dates for {year} not found"
             )
