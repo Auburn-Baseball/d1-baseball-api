@@ -6,18 +6,13 @@ from d1_baseball_api.models.responses import (
     ConferenceResponse,
     TeamsResponse,
     TeamResponse,
+    SeasonDatesResponse,
 )
 from typing import Dict, List
 from d1_baseball_api.models.models import ConferenceTeam, Team, SeasonDates
-import os
-from supabase import create_client
 
 router = APIRouter()
 
-def _sb():
-    url = os.getenv("SUPABASE_PROJECT_URL")
-    key = os.getenv("SUPABASE_API_KEY")
-    return create_client(url, key)
 
 @router.get("/", response_model=MessageResponse)
 async def read_root():
@@ -200,21 +195,35 @@ async def get_team_by_year_and_trackman(year: int, trackman: str) -> Dict[str, T
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
-    
-@router.get("/season-dates/{year}", response_model=SeasonDates)
-async def get_season_dates(year: int):
+
+
+@router.get("/season-dates", response_model=SeasonDatesResponse)
+async def get_season_dates(year: int) -> List[SeasonDates]:
     """
-    Return the JSON season window for a given year from the SeasonDates table.
-    200: {"year": 2027, "season_start": "2026-06-23", "season_end": "2027-06-28"}
-    404: {"detail": "Season dates for 2025 not found"}
+    Get the season window for a specific year.
+
+    - **year**: The year to retrieve season dates for (e.g., 2026)
+
+    Returns a list containing the season window for the requested year.
     """
-    sb = _sb()
-    resp = sb.table("SeasonDates").select("*").eq("year", year).single().execute()
-    row = resp.data
-    if not row:
-        raise HTTPException(status_code=404, detail=f"Season dates for {year} not found")
-    # FastAPI + Pydantic will serialize to JSON automatically
-    return SeasonDates(**row)
+    try:
+        supabase = get_supabase()
+        response = (
+            supabase.table("SeasonDates")
+            .select("year, season_start, season_end")
+            .eq("year", year)
+            .execute()
+        )
 
+        if not response.data:
+            raise HTTPException(
+                status_code=404, detail=f"Season dates for {year} not found"
+            )
 
+        season_dates = [SeasonDates(**record) for record in response.data]
+        return season_dates
 
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")

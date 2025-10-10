@@ -20,6 +20,7 @@ class TrackmanTeamMappingTable(BaseModel):
     TrackmanAbbreviation: str
     Mascot: str
 
+
 class SeasonDates(BaseModel):
     year: int
     season_start: date

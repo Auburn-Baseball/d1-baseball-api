@@ -77,19 +77,18 @@ class TeamResponse(RootModel[Team]):
         }
     }
 
-class SeasonDatesResponse(RootModel[List[SeasonDates]]):
-    """Response model for season dates endpoint"""
 
-    year: int
-    start_date: date
-    end_date: date
+class SeasonDatesResponse(RootModel[List[SeasonDates]]):
+    """Response model for season dates endpoint - List of season windows"""
 
     model_config = {
         "json_schema_extra": {
-            "example": {
-                "year": 2026,
-                "start_date": "2026-06-14",
-                "end_date": "2026-06-15",
-            }
+            "example": [
+                {
+                    "year": 2026,
+                    "season_start": "2026-02-16",
+                    "season_end": "2026-06-30",
+                }
+            ]
         }
     }

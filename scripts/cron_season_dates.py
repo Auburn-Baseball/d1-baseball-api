@@ -14,18 +14,22 @@ if not url or not key:
 
 supabase = create_client(url, key)
 
+
 def ensure_year_exists(year: int, season_start: date, season_end: date):
     """Insert a year row if it's not already in SeasonDates."""
     resp = supabase.table("SeasonDates").select("year").eq("year", year).execute()
     if resp.data:
         print(f"Year {year} already exists. Skipping insert.")
         return
-    supabase.table("SeasonDates").insert({
-        "year": year,
-        "season_start": season_start,
-        "season_end": season_end,
-    }).execute()
+    supabase.table("SeasonDates").insert(
+        {
+            "year": year,
+            "season_start": season_start,
+            "season_end": season_end,
+        }
+    ).execute()
     print(f"Inserted {year}: {season_start} → {season_end}")
+
 
 if __name__ == "__main__":
     try:
