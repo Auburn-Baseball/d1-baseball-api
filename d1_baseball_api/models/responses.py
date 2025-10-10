@@ -1,7 +1,6 @@
 from pydantic import BaseModel, RootModel
-from typing import List, Optional, Dict
+from typing import List, Dict
 from d1_baseball_api.models.models import ConferenceTeam, Team, SeasonDates
-from datetime import date
 
 
 class MessageResponse(BaseModel):
@@ -27,19 +26,6 @@ class ConferencesResponse(RootModel[Dict[str, List[ConferenceTeam]]]):
     }
 
 
-class ConferenceResponse(RootModel[List[ConferenceTeam]]):
-    """Response model for conference endpoint - Conference team list"""
-
-    model_config = {
-        "json_schema_extra": {
-            "example": [
-                {"TeamName": "Alabama", "TrackmanAbbreviation": "ALA_CRI"},
-                {"TeamName": "Auburn", "TrackmanAbbreviation": "AUB_TIG"},
-            ]
-        }
-    }
-
-
 class TeamsResponse(RootModel[List[Team]]):
     """Response model for teams endpoint - List of teams"""
 
@@ -59,21 +45,6 @@ class TeamsResponse(RootModel[List[Team]]):
                     "Conference": "SEC",
                 },
             ]
-        }
-    }
-
-
-class TeamResponse(RootModel[Team]):
-    """Response model for team endpoint - Team object"""
-
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "TrackmanAbbreviation": "AUB_TIG",
-                "TeamName": "Auburn",
-                "Mascot": "Tigers",
-                "Conference": "SEC",
-            },
         }
     }
 
