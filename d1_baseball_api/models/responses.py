@@ -1,6 +1,7 @@
 from pydantic import BaseModel, RootModel
 from typing import List, Optional, Dict
-from d1_baseball_api.models.models import ConferenceTeam, Team
+from d1_baseball_api.models.models import ConferenceTeam, Team, SeasonDates
+from datetime import date
 
 
 class MessageResponse(BaseModel):
@@ -73,5 +74,22 @@ class TeamResponse(RootModel[Team]):
                 "Mascot": "Tigers",
                 "Conference": "SEC",
             },
+        }
+    }
+
+class SeasonDatesResponse(RootModel[List[SeasonDates]]):
+    """Response model for season dates endpoint"""
+
+    year: int
+    start_date: date
+    end_date: date
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "year": 2026,
+                "start_date": "2026-06-14",
+                "end_date": "2026-06-15",
+            }
         }
     }

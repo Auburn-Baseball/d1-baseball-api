@@ -1,5 +1,6 @@
 from pydantic import BaseModel, RootModel
 from typing import List, Optional, Dict
+from datetime import date
 
 
 class TeamConferenceTable(BaseModel):
@@ -18,3 +19,8 @@ class TrackmanTeamMappingTable(BaseModel):
     TeamName: str
     TrackmanAbbreviation: str
     Mascot: str
+
+class SeasonDates(BaseModel):
+    year: int
+    season_start: date
+    season_end: date
