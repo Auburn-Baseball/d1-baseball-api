@@ -1,4 +1,4 @@
-name: Supabase Season Dates Check
+name: Supabase Keep Alive
 
 on:
   schedule:
