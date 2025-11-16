@@ -37,7 +37,7 @@ jobs:
             --jq '.[] | {number, author: .author.login, title, files}' | jq .
 
           prs=$(gh pr list --repo "$REPO" --state open --json number,author,title,files \
-            --jq '.[] | select(.author.login | contains("github-actions")) | select(.files | index(".keep-alive") != null) | .number')
+            --jq '.[] | select(.author.login | tostring | contains("github-actions")) | select(.files | map(.path) | index(".keep-alive")) | .number')
 
           if [ -z "$prs" ]; then
             echo "No matching keep-alive PRs found."
