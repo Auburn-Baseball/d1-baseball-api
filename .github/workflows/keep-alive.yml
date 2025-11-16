@@ -33,11 +33,4 @@ jobs:
           branch: "chore/keep-alive"
           add-paths: ".keep-alive"
           delete-branch: true
-
-      - name: Merge pull request
-        if: steps.cpr.outputs.pull-request-number != ''
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
-        run: |
-          gh pr merge "$PR_NUMBER" --squash --delete-branch --admin
+          

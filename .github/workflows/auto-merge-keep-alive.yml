@@ -1,0 +1,37 @@
+name: Auto-merge keep-alive PRs
+
+on:
+  schedule:
+    - cron: "0 */1 * * *" # Every 1 hours (UTC time)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get GitHub App token
+        id: app-token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.GH_APP_ID }}
+          private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Run Auto Merge Script
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh jq
+          prs=$(gh pr list --repo "$REPO" --state open --json number,author,title,files --jq '.[] | select(.author.login=="github-actions[bot]") | select(.files | index(".keep-alive") != null) | .number')
+          for pr in $prs; do
+            echo "Merging PR #$pr"
+            gh pr merge "$pr" --repo "$REPO" --squash --delete-branch --admin --merge
+          done
