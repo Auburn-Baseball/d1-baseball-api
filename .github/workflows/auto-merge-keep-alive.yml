@@ -2,7 +2,7 @@ name: Auto-merge keep-alive PRs
 
 on:
   schedule:
-    - cron: "0 */1 * * *" # Every 1 hours (UTC time)
+    - cron: "0 */1 * * *" # Every hour (UTC time)
   workflow_dispatch:
 
 permissions:
@@ -32,8 +32,19 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gh jq
-          prs=$(gh pr list --repo "$REPO" --state open --json number,author,title,files --jq '.[] | select(.author.login=="github-actions[bot]") | select(.files | index(".keep-alive") != null) | .number')
+          echo "Looking for keep-alive PRs authored by GitHub Actions..."
+          gh pr list --repo "$REPO" --state open --json number,author,title,files \
+            --jq '.[] | {number, author: .author.login, title, files}' | jq .
+
+          prs=$(gh pr list --repo "$REPO" --state open --json number,author,title,files \
+            --jq '.[] | select(.author.login | contains("github-actions")) | select(.files | index(".keep-alive") != null) | .number')
+
+          if [ -z "$prs" ]; then
+            echo "No matching keep-alive PRs found."
+            exit 0
+          fi
+
           for pr in $prs; do
             echo "Merging PR #$pr"
-            gh pr merge "$pr" --repo "$REPO" --squash --delete-branch --admin --merge
+            gh pr merge "$pr" --repo "$REPO" --squash --delete-branch --admin
           done
