@@ -11,6 +11,8 @@ permissions:
 
 jobs:
   auto-merge:
+    environment:
+      name: actions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
