@@ -5,8 +5,8 @@ Deployed on Render and managed with Poetry.
 
 ## Live API
 
-- **Base URL:** https://d1-baseball-api.onrender.com/
-- **Interactive docs (Swagger UI):** https://d1-baseball-api.onrender.com/docs
+- **Base URL:** https://d1-baseball-api-c79q.onrender.com/
+- **Interactive docs (Swagger UI):** https://d1-baseball-api-c79q.onrender.com/docs
 
 ## Quickstart
 
