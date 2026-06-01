@@ -42,11 +42,16 @@ def update_teams_and_conferences(supabase: Client):
             )
 
     try:
+        trackman_teams = {
+            row["TeamName"]
+            for row in supabase.table("TrackmanTeamMappings").select("TeamName").execute().data
+        }
+        filtered_data = [row for row in team_conference_data if row["TeamName"] in trackman_teams]
         supabase.table("TeamConferences").upsert(
-            team_conference_data, on_conflict=["TeamName", "Year"]
+            filtered_data, on_conflict="TeamName,Year"
         ).execute()
         print(
-            f"Successfully upserted {len(team_conference_data)} team-conference records for {current_year}"
+            f"Successfully upserted {len(filtered_data)} team-conference records for {current_year}"
         )
     except Exception as e:
         print(f"Error upserting data: {e}")
